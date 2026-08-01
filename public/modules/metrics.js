@@ -40,15 +40,50 @@ export function currentMetrics(baseUrl, signal) {
   return query(baseUrl, "/api/weather/query", { query: METRIC_QUERY }, signal);
 }
 
-export function historyMetrics(baseUrl, period, signal) {
+function metricKey(metric = {}) {
+  return JSON.stringify(
+    Object.entries(metric).sort(([left], [right]) => left.localeCompare(right))
+  );
+}
+
+export function mergeCurrentIntoHistory(history, current) {
+  const result = (history?.result ?? []).map((series) => ({
+    ...series,
+    metric: { ...series.metric },
+    values: [...(series.values ?? [])]
+  }));
+  const byMetric = new Map(result.map((series) => [metricKey(series.metric), series]));
+
+  for (const series of current?.result ?? []) {
+    const [timestamp, value] = series.value ?? [];
+    if (!Number.isFinite(Number(timestamp)) || !Number.isFinite(Number(value))) continue;
+    const key = metricKey(series.metric);
+    let target = byMetric.get(key);
+    if (!target) {
+      target = { metric: { ...series.metric }, values: [] };
+      byMetric.set(key, target);
+      result.push(target);
+    }
+    const lastTimestamp = Number(target.values.at(-1)?.[0] ?? -Infinity);
+    if (Number(timestamp) > lastTimestamp) target.values.push([timestamp, value]);
+  }
+
+  return { ...history, result };
+}
+
+export async function historyMetrics(baseUrl, period, signal) {
   const end = Math.floor(Date.now() / 1000);
   const start = end - period.seconds;
-  return query(
-    baseUrl,
-    "/api/weather/query_range",
-    { query: METRIC_QUERY, start, end, step: period.stepSeconds },
-    signal
-  );
+  const [history, current] = await Promise.all([
+    query(
+      baseUrl,
+      "/api/weather/query_range",
+      { query: METRIC_QUERY, start, end, step: period.stepSeconds },
+      signal
+    ),
+    currentMetrics(baseUrl, signal)
+  ]);
+  return mergeCurrentIntoHistory(history, current);
 }
 
 export function vectorToReading(data) {
@@ -84,4 +119,3 @@ export function matrixToSeries(data) {
   }
   return result;
 }
-

@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { matrixToSeries, normalizeMetricsBaseUrl, vectorToReading } from "../public/modules/metrics.js";
+import {
+  matrixToSeries,
+  mergeCurrentIntoHistory,
+  normalizeMetricsBaseUrl,
+  vectorToReading
+} from "../public/modules/metrics.js";
 
 describe("VictoriaMetrics response mapping", () => {
   test("maps current sensor metrics without losing the newest timestamp", () => {
@@ -26,6 +31,29 @@ describe("VictoriaMetrics response mapping", () => {
     ).toEqual({ pm10: [{ timestamp: 1, value: 10 }, { timestamp: 3, value: 12 }] });
   });
 
+  test("keeps the latest reading visible when a coarse history step has no samples", () => {
+    expect(
+      mergeCurrentIntoHistory(
+        { result: [] },
+        {
+          result: [
+            {
+              metric: { __name__: "weather_BME280_temperature", node: "station" },
+              value: [101, "18.7"]
+            }
+          ]
+        }
+      )
+    ).toEqual({
+      result: [
+        {
+          metric: { __name__: "weather_BME280_temperature", node: "station" },
+          values: [[101, "18.7"]]
+        }
+      ]
+    });
+  });
+
   test("requires an HTTPS metrics origin", () => {
     expect(normalizeMetricsBaseUrl("https://metrics.home.reutov.me/")).toBe(
       "https://metrics.home.reutov.me"
@@ -33,4 +61,3 @@ describe("VictoriaMetrics response mapping", () => {
     expect(() => normalizeMetricsBaseUrl("http://metrics.home.reutov.me")).toThrow();
   });
 });
-
