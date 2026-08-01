@@ -1,0 +1,11 @@
+{
+  "name": "weather-sensor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bun test && bun run scripts/check-static.mjs",
+    "serve": "bunx serve public -l 4173"
+  }
+}
+

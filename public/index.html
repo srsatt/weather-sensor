@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#16382f">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Current and historical readings from the home weather station">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/weather.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/weather-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Home Weather</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p id="station-name" class="eyebrow">Home</p>
+        <h1 id="app-title">Home Weather</h1>
+      </div>
+      <div class="topbar-actions">
+        <button id="language-toggle" class="text-button" type="button">Русский</button>
+        <button id="refresh" class="icon-button" type="button" aria-label="Refresh readings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
+          <span id="refresh-label" class="sr-only">Refresh readings</span>
+        </button>
+      </div>
+    </header>
+
+    <aside id="offline-banner" class="offline" hidden>You appear to be offline.</aside>
+
+    <main>
+      <section id="screen-current" class="screen current-grid">
+        <article class="source-card local-card">
+          <header class="card-heading">
+            <div>
+              <p class="eyebrow">Sensor.Community</p>
+              <h2 id="local-title">Home station</h2>
+            </div>
+            <span class="live-dot" aria-hidden="true"></span>
+          </header>
+          <div class="hero-reading">
+            <span id="local-temperature" class="hero-value">—</span><span class="hero-unit">°C</span>
+          </div>
+          <div class="metric-grid">
+            <div class="metric"><span data-i18n="humidity">Humidity</span><strong><span id="local-humidity">—</span> <small id="local-humidity-unit">%</small></strong></div>
+            <div class="metric"><span data-i18n="pressure">Pressure</span><strong><span id="local-pressure">—</span> <small id="local-pressure-unit">hPa</small></strong></div>
+            <div class="metric"><span data-i18n="pm25">PM2.5</span><strong><span id="local-pm25">—</span> <small id="local-pm25-unit">µg/m³</small></strong></div>
+            <div class="metric"><span data-i18n="pm10">PM10</span><strong><span id="local-pm10">—</span> <small id="local-pm10-unit">µg/m³</small></strong></div>
+          </div>
+          <p id="local-status" class="source-status" aria-live="polite">Loading…</p>
+        </article>
+
+        <article class="source-card external-card">
+          <header class="card-heading">
+            <div>
+              <p id="external-source" class="eyebrow">Forecast model via Open-Meteo</p>
+              <h2 id="external-title">DWD ICON</h2>
+            </div>
+            <span class="model-badge">ICON</span>
+          </header>
+          <div class="external-hero">
+            <div><span id="external-temperature" class="hero-value">—</span><span class="hero-unit">°C</span></div>
+            <strong id="external-condition" class="condition">—</strong>
+          </div>
+          <div class="metric-grid external-metrics">
+            <div class="metric"><span data-i18n="feelsLike">Feels like</span><strong><span id="external-feels">—</span> <small>°C</small></strong></div>
+            <div class="metric"><span data-i18n="humidity">Humidity</span><strong><span id="external-humidity">—</span> <small>%</small></strong></div>
+            <div class="metric"><span data-i18n="pressure">Pressure</span><strong><span id="external-pressure">—</span> <small>hPa</small></strong></div>
+            <div class="metric"><span data-i18n="cloudCover">Cloud cover</span><strong><span id="external-cloud">—</span> <small>%</small></strong></div>
+            <div class="metric"><span data-i18n="wind">Wind</span><strong><span id="external-wind">—</span> <small>km/h</small></strong></div>
+            <div class="metric"><span data-i18n="gusts">Gusts</span><strong><span id="external-gusts">—</span> <small>km/h</small></strong></div>
+            <div class="metric"><span data-i18n="precipitation">Precipitation</span><strong><span id="external-rain">—</span> <small>mm</small></strong></div>
+          </div>
+          <p id="external-status" class="source-status" aria-live="polite">Loading…</p>
+        </article>
+      </section>
+
+      <section id="screen-history" class="screen" hidden>
+        <div class="history-toolbar">
+          <label id="period-label" for="history-period">Time period</label>
+          <select id="history-period">
+            <option value="24h">24 hours</option>
+            <option value="7d">7 days</option>
+            <option value="30d">30 days</option>
+            <option value="90d">90 days</option>
+            <option value="1y">1 year</option>
+          </select>
+          <p id="history-status" class="source-status" aria-live="polite"></p>
+        </div>
+        <div id="history-charts" class="history-charts"></div>
+      </section>
+    </main>
+
+    <aside id="install-prompt" class="install-prompt" hidden>
+      <img src="/icons/weather.svg" width="56" height="56" alt="">
+      <div><strong id="install-title">Keep weather one tap away</strong><p id="install-text">Install this app for a full-screen home weather view.</p></div>
+      <div class="install-actions"><button id="dismiss-install" class="text-button" type="button">Not now</button><button id="install" class="primary-button" type="button">Install app</button></div>
+    </aside>
+
+    <nav class="bottom-nav" aria-label="Primary">
+      <button class="nav-button active" type="button" data-screen="current" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+        <span data-i18n="current">Now</span>
+      </button>
+      <button class="nav-button" type="button" data-screen="history" aria-current="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h16M7 15l4-4 3 2 5-6"/></svg>
+        <span data-i18n="history">History</span>
+      </button>
+    </nav>
+
+    <script src="/config.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
+
